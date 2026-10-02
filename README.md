@@ -1,4 +1,4 @@
-# Brújula Bibliográfica Web
+# Revisión Bibliográfica · Termografía mamaria
 
 Aplicación independiente en HTML, CSS y JavaScript. Está junto a la aplicación
 original `brujula_bibliografica` y consulta el mismo dataset de 601 artículos.
@@ -87,3 +87,11 @@ son herramientas de mantenimiento y verificación, y pueden omitirse del hosting
 filtros, conteos, ordenación, gráficos, detalles, exportación, archivos, tema,
 ruta de subcarpeta y tamaño móvil. Playwright se usa únicamente para verificar;
 no es una dependencia de ejecución de esta aplicación.
+
+## Publicación del informe
+
+Repositorio: https://github.com/utpliacloud-sudo/revision-bibliografica-termografia
+
+Informe: https://utpliacloud-sudo.github.io/revision-bibliografica-termografia/
+
+Cada push a main publica los archivos mediante el workflow de GitHub Pages.
