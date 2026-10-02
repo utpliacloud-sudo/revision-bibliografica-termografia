@@ -34,7 +34,7 @@ try {
   for(let i=0;i<4;i++) {
     await page.locator(`[data-objective="${i}"]`).click();
     for(const group of groups[i]) {
-      const actual=await page.locator(`[data-group="${group}"] .summary-table tbody tr`).evaluateAll(rows=>Object.fromEntries(rows.map(row=>[row.cells[0].textContent,Number(row.cells[1].textContent)])));
+      const actual=await page.locator(`[data-group="${group}"] .summary-table tbody tr`).evaluateAll(rows=>Object.fromEntries(rows.map(row=>[row.dataset.evidenceCategory || row.cells[0].textContent,Number(row.cells[1].textContent)])));
       assert.deepEqual(actual,Object.fromEntries(Object.entries(reference[group]).filter(([,n])=>n)),group);
       const chart=page.locator(`[data-chart="${group}"]`);
       for(const type of ['Tarjetas','Barras','Puntos','Anillo']) {await chart.selectOption(type);assert.ok((await page.locator(`[data-group="${group}"] .chart-output`).innerHTML()).length>20);}
@@ -47,7 +47,7 @@ try {
     if(!selected.length){assert.equal(await page.locator('.evidence').count(),0);continue;}
     await page.locator('[data-objective="0"]').click();
     for(const group of groups[0]) {
-      const actual=await page.locator(`[data-group="${group}"] .summary-table tbody tr`).evaluateAll(rows=>Object.fromEntries(rows.map(row=>[row.cells[0].textContent,Number(row.cells[1].textContent)])));
+      const actual=await page.locator(`[data-group="${group}"] .summary-table tbody tr`).evaluateAll(rows=>Object.fromEntries(rows.map(row=>[row.dataset.evidenceCategory || row.cells[0].textContent,Number(row.cells[1].textContent)])));
       const expected=Object.fromEntries(data.categories[group].map(name=>[name,selected.filter(a=>a.mentions[group].includes(name)).length]).filter(([,n])=>n));assert.deepEqual(actual,expected,`${mask}: ${group}`);
     }
   }
@@ -55,7 +55,7 @@ try {
   const filter=page.locator('[data-group="datasets"] .category-filter');await filter.locator('summary').click();
   const checkboxes=filter.locator('input');for(let i=0;i<await checkboxes.count();i++)await checkboxes.nth(i).uncheck();assert.match(await page.locator('[data-group="datasets"] .chart-output').innerText(),/Selecciona al menos/);
   await checkboxes.first().check();await filter.locator('summary').click();
-  const trace=page.locator('[data-group="datasets"] .trace');await trace.locator('summary').click();const options=await trace.locator('option').allTextContents();await trace.locator('select').selectOption(options.at(-1));assert.ok(await trace.locator('tbody tr').count()>0);
+  await page.locator('[data-group="datasets"] .count-button').first().click();assert.ok(await page.locator('dialog .scores tbody tr').count()>0);await page.locator('[data-close]').click();
   await page.locator('details.panel').nth(1).locator('summary').click();await page.locator('[data-reason]').first().click();await page.locator('dialog[open]').waitFor();
   const reasonExport=page.waitForEvent('download');await page.locator('[data-export-reason]').click();assert.equal((await reasonExport).suggestedFilename(),'articulos_del_motivo.csv');await page.locator('[data-close]').click();
   await page.locator('[data-objective="3"]').click();assert.equal(await page.locator('.metric-table tbody tr').count(),601);

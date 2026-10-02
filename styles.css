@@ -12,3 +12,4 @@
 
 .brand-logo{width:34px;height:34px;flex:none}
 .topic-emphasis{font-style:italic;font-weight:600;color:var(--green)}.process-emphasis{font-weight:650;color:var(--green)}
+[data-evidence-category]{cursor:pointer}[data-evidence-category]:hover{filter:brightness(1.08)}.count-button{padding:3px 9px;min-width:35px;color:var(--green);background:var(--tint);font-size:.8rem}.dataset-access{display:block;font-size:.68rem;color:var(--muted);margin-top:5px;font-weight:400}.dataset-link{white-space:normal}.donut [role=button]:focus-visible{outline:2px solid #ef9b62}.evidence-card[role=button]:hover{border-color:#32a890}

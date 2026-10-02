@@ -82,22 +82,42 @@ function resultTable(rows) {
 }
 function counts(rows,group) { return project.categories[group].map(name=>({name,articles:rows.filter(a=>a.mentions[group].includes(name))})).filter(x=>x.articles.length).sort((a,b)=>b.articles.length-a.articles.length); }
 const palette = ['#32a890','#ef9b62','#6a9cb3','#a690c4','#d1b44f','#ea7983','#6cb86e','#667bdd','#a06e50','#45a6c2','#bd66a2','#9ca950','#608d84','#dd8366','#a2a9bc'];
-function graphic(items,total,kind) {
+const datasetSites = {
+  'DMR / DMR-IR': {url:'https://visual.ic.uff.br/dmi/',note:'Sitio oficial · acceso mediante registro'},
+  'MIAS': {url:'https://www.repository.cam.ac.uk/handle/1810/250394',note:'Repositorio público · University of Cambridge'},
+  'Wisconsin Breast Cancer': {url:'https://archive.ics.uci.edu/datasets?search=Breast+Cancer+Wisconsin',note:'Repositorio público UCI · consultar la versión del estudio'},
+  'DBT-TU-JU': {url:'https://www.mkbhowmik.in/dbtTu.aspx',note:'Ficha oficial · publicación de los datos pendiente de permiso'},
+  'INbreast': {note:'Repositorio de origen sin disponibilidad verificada'}
+};
+function categoryAttrs(group,name,role='button') {
+  return group && group!=='metrics' ? `data-evidence-group="${group}" data-evidence-category="${escape(name)}" ${role?`role="${role}" tabindex="0"`:''} aria-label="Ver artículos: ${escape(name)}"` : '';
+}
+function datasetLabel(name) {
+  const site=datasetSites[name];
+  return site?.url?`<a class="resource dataset-link" href="${site.url}" target="_blank" rel="noopener noreferrer" title="${escape(site.note)}">${escape(name)} ↗</a><small class="dataset-access">${escape(site.note)}</small>`:`${escape(name)}${site?`<small class="dataset-access">${escape(site.note)}</small>`:''}`;
+}
+function showEvidence(group,category) {
+  if(!sections[group] || !project.categories[group].includes(category))return;
+  const rows=selectedArticles().filter(a=>a.mentions[group].includes(category));
+  document.querySelector('#dialog-content').innerHTML=`<div class="dialog-header"><div class="eyebrow">ARTÍCULOS DE LA CATEGORÍA</div><button data-close aria-label="Cerrar diálogo">×</button></div><h2>${escape(category)}</h2><p class="caption">${escape(sections[group][0])} · ${rows.length} artículos dentro de la selección actual. La mención se detectó en título, resumen o palabras clave.</p>${group==='datasets'?`<p>${datasetLabel(category)}</p>`:''}${scoreTable(sortedArticles(rows))}<button class="primary" data-export-category="${escape(category)}" data-export-group="${group}" ${rows.length?'':'disabled'}>↓ Exportar estos artículos CSV</button>`;
+  if(!dialog.open)dialog.showModal();
+}
+function graphic(items,total,kind,group) {
   if (!items.length) return '<p class="empty">Selecciona al menos una categoría para mostrar la gráfica.</p>';
-  if (kind==='Tarjetas') return `<div class="evidence-cards">${items.map(x=>`<div class="evidence-card"><b>${escape(x.name)}</b><div class="card-number">${x.articles.length} <small>artículos · ${percent(x.articles.length,total)}</small></div><div class="meter"><span style="width:${x.articles.length*100/total}%"></span></div></div>`).join('')}</div>`;
+  if (kind==='Tarjetas') return `<div class="evidence-cards">${items.map(x=>`<div class="evidence-card" ${categoryAttrs(group,x.name)}><b>${escape(x.name)}</b><div class="card-number">${x.articles.length} <small>artículos · ${percent(x.articles.length,total)}</small></div><div class="meter"><span style="width:${x.articles.length*100/total}%"></span></div></div>`).join('')}</div>`;
   if (kind==='Anillo') {
     const sum=items.reduce((s,x)=>s+x.articles.length,0); let offset=0;
-    const rings=items.map((x,i)=>{const fraction=x.articles.length/sum;const node=`<circle cx="120" cy="120" r="82" fill="none" stroke="${palette[i%palette.length]}" stroke-width="30" pathLength="100" stroke-dasharray="${fraction*100} ${100-fraction*100}" stroke-dashoffset="${-offset*100}" transform="rotate(-90 120 120)"><title>${escape(x.name)}: ${x.articles.length} menciones</title></circle>`;offset+=fraction;return node;}).join('');
-    return `<div class="donut"><svg viewBox="0 0 240 240" role="img" aria-label="Distribución de menciones por categoría">${rings}<text x="120" y="118" text-anchor="middle" class="donut-number">${sum}</text><text x="120" y="142" text-anchor="middle" class="donut-label">menciones</text></svg><div>${items.map((x,i)=>`<p><i style="background:${palette[i%palette.length]}"></i>${escape(x.name)} <b>${x.articles.length}</b></p>`).join('')}</div></div><p class="caption">El anillo reparte menciones entre categorías; un artículo puede aparecer en varias.</p>`;
+    const rings=items.map((x,i)=>{const fraction=x.articles.length/sum;const node=`<circle ${categoryAttrs(group,x.name)} cx="120" cy="120" r="82" fill="none" stroke="${palette[i%palette.length]}" stroke-width="30" pathLength="100" stroke-dasharray="${fraction*100} ${100-fraction*100}" stroke-dashoffset="${-offset*100}" transform="rotate(-90 120 120)"><title>${escape(x.name)}: ${x.articles.length} menciones</title></circle>`;offset+=fraction;return node;}).join('');
+    return `<div class="donut"><svg viewBox="0 0 240 240" role="img" aria-label="Distribución de menciones por categoría">${rings}<text x="120" y="118" text-anchor="middle" class="donut-number">${sum}</text><text x="120" y="142" text-anchor="middle" class="donut-label">menciones</text></svg><div>${items.map((x,i)=>`<p ${categoryAttrs(group,x.name)}><i style="background:${palette[i%palette.length]}"></i>${escape(x.name)} <b>${x.articles.length}</b></p>`).join('')}</div></div><p class="caption">El anillo reparte menciones entre categorías; un artículo puede aparecer en varias.</p>`;
   }
   const maximum=Math.max(...items.map(x=>x.articles.length));
-  return `<div class="bar-chart ${kind==='Puntos'?'dots':''}">${items.map(x=>`<div class="bar-row"><span>${escape(x.name)}</span><div class="bar-track"><div class="bar" style="width:${x.articles.length/maximum*100}%"><i></i></div></div><b title="${percent(x.articles.length,total)} de seleccionados">${x.articles.length}</b></div>`).join('')}<p class="caption">Número de artículos</p></div>`;
+  return `<div class="bar-chart ${kind==='Puntos'?'dots':''}">${items.map(x=>`<div class="bar-row" ${categoryAttrs(group,x.name)}><span>${escape(x.name)}</span><div class="bar-track"><div class="bar" style="width:${x.articles.length/maximum*100}%"><i></i></div></div><b title="${percent(x.articles.length,total)} de seleccionados">${x.articles.length}</b></div>`).join('')}<p class="caption">Número de artículos</p></div>`;
 }
 function evidence(rows,group) {
   const [heading,defaultKind,note]=sections[group], all=counts(rows,group);
   const kind=state.charts[group]||defaultKind;
   const visible=all.filter(x=>!state.categories[group]||state.categories[group].has(x.name));
-  return `<section class="evidence" data-group="${group}"><h3>${heading}</h3>${note?`<p class="caption">${note}</p>`:''}${all.length?`<div class="chart-controls"><label>Visualización <select data-chart="${group}">${['Tarjetas','Barras','Puntos','Anillo'].map(k=>`<option ${kind===k?'selected':''}>${k}</option>`).join('')}</select></label><details class="category-filter"><summary>Filtrar categorías</summary><div>${all.map(x=>`<label><input type="checkbox" data-category="${group}" value="${escape(x.name)}" ${(!state.categories[group]||state.categories[group].has(x.name))?'checked':''}>${escape(x.name)}</label>`).join('')}</div></details></div><div class="chart-output">${graphic(visible,rows.length,kind)}</div><div class="table-scroll summary-table"><table><thead><tr><th>Categoría</th><th>Artículos</th><th>% de seleccionados</th></tr></thead><tbody>${all.map(x=>`<tr><td>${escape(x.name)}</td><td>${x.articles.length}</td><td>${percent(x.articles.length,rows.length)}</td></tr>`).join('')}</tbody></table></div><details class="trace"><summary>Ver los artículos detrás de cada conteo</summary><label>Categoría <select data-trace="${group}">${all.map(x=>`<option>${escape(x.name)}</option>`).join('')}</select></label><div class="trace-list">${articleList(all[0].articles)}</div></details>`:'<p class="empty">No hay menciones explícitas en los registros seleccionados.</p>'}</section>`;
+  return `<section class="evidence" data-group="${group}"><h3>${heading}</h3>${note?`<p class="caption">${note}</p>`:''}${all.length?`<div class="chart-controls"><label>Visualización <select data-chart="${group}">${['Tarjetas','Barras','Puntos','Anillo'].map(k=>`<option ${kind===k?'selected':''}>${k}</option>`).join('')}</select></label><details class="category-filter"><summary>Filtrar categorías</summary><div>${all.map(x=>`<label><input type="checkbox" data-category="${group}" value="${escape(x.name)}" ${(!state.categories[group]||state.categories[group].has(x.name))?'checked':''}>${escape(x.name)}</label>`).join('')}</div></details></div><div class="chart-output">${graphic(visible,rows.length,kind,group)}</div><div class="table-scroll summary-table"><table><thead><tr><th>Categoría</th><th>Artículos</th><th>% de seleccionados</th></tr></thead><tbody>${all.map(x=>`<tr ${categoryAttrs(group,x.name,'')}><td>${group==='datasets'?datasetLabel(x.name):group==='metrics'?escape(x.name):`<button class="article-title" ${categoryAttrs(group,x.name,'')}>${escape(x.name)}</button>`}</td><td>${group==='metrics'?x.articles.length:`<button class="count-button" ${categoryAttrs(group,x.name,'')}>${x.articles.length}</button>`}</td><td>${percent(x.articles.length,rows.length)}</td></tr>`).join('')}</tbody></table></div>${group==='metrics'?`<details class="trace"><summary>Ver los artículos detrás de cada conteo</summary><label>Categoría <select data-trace="${group}">${all.map(x=>`<option>${escape(x.name)}</option>`).join('')}</select></label><div class="trace-list">${articleList(all[0].articles)}</div></details>`:'<p class="caption">Pulsa una categoría o su conteo para ver los artículos relacionados. Los enlaces ↗ abren el sitio de la base de datos.</p>'}`:'<p class="empty">No hay menciones explícitas en los registros seleccionados.</p>'}</section>`;
 }
 function articleList(rows) { return `<div class="table-scroll trace-table"><table><thead><tr><th>Recurso</th><th>Título</th></tr></thead><tbody>${rows.map(a=>`<tr><td>${resource(a)}</td><td><button class="article-title" data-article="${project.articles.indexOf(a)}">${escape(title(a))}</button></td></tr>`).join('')}</tbody></table></div>`; }
 function network(rows) {
@@ -130,7 +150,10 @@ function showArticle(index) {
   if(!dialog.open)dialog.showModal();
 }
 document.addEventListener('click',event=>{
+  const category=event.target.closest('[data-evidence-category]');
+  if(category && !event.target.closest('a')){showEvidence(category.dataset.evidenceGroup,category.dataset.evidenceCategory);return;}
   const button=event.target.closest('button');if(!button)return;
+  if(button.hasAttribute('data-export-category')){csvDownload(selectedArticles().filter(a=>a.mentions[button.dataset.exportGroup].includes(button.dataset.exportCategory)),'articulos_categoria.csv');return;}
   if(button.hasAttribute('data-copy-query')){
     const code=button.dataset.copyQuery, status=button.parentElement.querySelector('.copy-status');
     navigator.clipboard.writeText(queries.queries[code].text).then(()=>{status.textContent='Cadena copiada';}).catch(()=>{status.textContent='No se pudo copiar. Descarga el TXT o selecciona el texto.';});return;
@@ -151,6 +174,10 @@ document.addEventListener('click',event=>{
   if(button.hasAttribute('data-objective')){state.objective=Number(button.dataset.objective);results();}
   if(button.hasAttribute('data-dismiss')){state.hint=false;results();}
 });
+document.addEventListener('keydown',event=>{
+  const category=event.target.closest('[data-evidence-category][role=button]');
+  if(category && ['Enter',' '].includes(event.key)){event.preventDefault();showEvidence(category.dataset.evidenceGroup,category.dataset.evidenceCategory);}
+});
 document.addEventListener('toggle',event=>{
   const details=event.target;
   if(details.isConnected && details.dataset.disclosure)state.disclosures[details.dataset.disclosure]=details.open;
@@ -162,7 +189,7 @@ document.addEventListener('change',event=>{
   if(input.hasAttribute('data-category')){const group=input.dataset.category;state.categories[group]??=new Set(project.categories[group]);input.checked?state.categories[group].add(input.value):state.categories[group].delete(input.value);updateChart(group);}
   if(input.hasAttribute('data-trace')){input.closest('.trace').querySelector('.trace-list').innerHTML=articleList(selectedArticles().filter(a=>a.mentions[input.dataset.trace].includes(input.value)));}
 });
-function updateChart(group){const rows=selectedArticles(),items=counts(rows,group).filter(x=>!state.categories[group]||state.categories[group].has(x.name));document.querySelector(`[data-group="${group}"] .chart-output`).innerHTML=graphic(items,rows.length,state.charts[group]||sections[group][1]);}
+function updateChart(group){const rows=selectedArticles(),items=counts(rows,group).filter(x=>!state.categories[group]||state.categories[group].has(x.name));document.querySelector(`[data-group="${group}"] .chart-output`).innerHTML=graphic(items,rows.length,state.charts[group]||sections[group][1],group);}
 let searchTimer;
 document.addEventListener('input',event=>{if(event.target.id==='search'){const field=event.target;state.query=field.value;state.page=0;clearTimeout(searchTimer);searchTimer=setTimeout(()=>{document.querySelector('#results-content').innerHTML=state.tab==='table'?resultTable(selectedArticles()):analysis(selectedArticles());},180);}});
 dialog.addEventListener('click',event=>{if(event.target===dialog){const box=dialog.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)dialog.close();}});

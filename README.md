@@ -45,7 +45,9 @@ relativas y admite publicación dentro de una subcarpeta, como GitHub Pages.
   dos artículos. Los empates se ordenan alfabéticamente para reproducibilidad.
 - Motivos de recomendación con diálogo, artículos y exportación.
 - Los cuatro objetivos y sus ocho secciones de evidencia; tarjetas, barras,
-  puntos y anillo, filtros de categorías y artículos detrás de cada conteo.
+  puntos y anillo, filtros de categorías y modales con artículos al pulsar
+  las categorías, conteos o gráficas (excepto métricas). Enlaces a repositorios
+  o fichas oficiales de datasets, indicando las condiciones de acceso.
 - Matriz de métricas por artículo, enlaces DOI/recursos y las tres líneas futuras
   que ya estaban marcadas como «Próximamente» en la aplicación original.
 - Tema claro/oscuro y diseño adaptable. Solo la preferencia de tema se guarda
