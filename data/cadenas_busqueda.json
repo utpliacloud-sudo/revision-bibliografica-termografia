@@ -20,23 +20,27 @@
   "research_questions": [
     {
       "name": "P1 · Datos y disponibilidad",
-      "question": "¿Qué bases de datos se utilizan, con qué frecuencia y bajo qué condiciones de acceso, especialmente en recursos públicos?",
-      "question_en": "Which datasets are used, how frequently, and under what access conditions, particularly for publicly available resources?"
+      "question": "¿Qué conjuntos de datos de termografía mamaria se han utilizado para la clasificación del cáncer de mama, cuáles son sus características y condiciones de acceso, y cuáles se utilizan con mayor frecuencia?",
+      "question_en": "RQ1 Datasets. Which breast thermography datasets have been used for breast cancer classification, what are their characteristics and access conditions, and which are used most frequently?",
+      "source": "paperThermo_v1.docx · Research questions"
     },
     {
       "name": "P2 · Preparación de imágenes",
-      "question": "¿Qué técnicas de preparación y aumento de imágenes se emplean, con qué propósito y con qué frecuencia?",
-      "question_en": "Which image preparation and augmentation techniques are used, for what purpose, and how frequently?"
+      "question": "¿Qué técnicas de preparación de imágenes y aumento de datos se han utilizado en estudios de clasificación del cáncer de mama basados en termografía, con qué propósitos y cuáles son las más frecuentes?",
+      "question_en": "RQ2 Image preparation. Which image preparation and data augmentation techniques have been used in thermography-based breast cancer classification studies, for what purposes, and which are most frequent?",
+      "source": "paperThermo_v1.docx · Research questions"
     },
     {
       "name": "P3 · Modelos de inteligencia artificial",
-      "question": "¿Qué modelos de aprendizaje automático y profundo se entrenan para la clasificación, con qué enfoques de entrenamiento y con qué frecuencia?",
-      "question_en": "Which machine learning and deep learning models are trained for classification, with which training approaches, and how frequently?"
+      "question": "¿Qué modelos de aprendizaje automático y aprendizaje profundo se han utilizado para la clasificación del cáncer de mama a partir de imágenes termográficas y cuáles son los enfoques más frecuentes?",
+      "question_en": "RQ3 Classification models. Which machine learning and deep learning models have been used for breast cancer classification from thermographic images, and which approaches are most frequent?",
+      "source": "paperThermo_v1.docx · Research questions"
     },
     {
       "name": "P4 · Evaluación y resultados",
-      "question": "¿Qué métricas, procedimientos de validación, resultados y limitaciones metodológicas se reportan?",
-      "question_en": "Which metrics, validation procedures, results, and methodological limitations are reported?"
+      "question": "¿Qué métricas y procedimientos de validación se han utilizado para evaluar los modelos de clasificación y qué resultados y limitaciones se reportan?",
+      "question_en": "RQ4 Evaluation. Which metrics and validation procedures have been used to evaluate classification models, and what results and limitations are reported?",
+      "source": "paperThermo_v1.docx · Research questions"
     }
   ]
 }
