@@ -19,7 +19,7 @@ const sections = {
   metrics:['Métricas de evaluación mencionadas','Tarjetas',''],
   limitations:['Limitaciones metodológicas mencionadas','Puntos','La ausencia de mención en los campos disponibles no implica ausencia del problema.']
 };
-const state = {levels:new Set(levels), query:'', tab:'table', objective:0, sort:'puntaje_general', ascending:false, page:0, selected:null, charts:{}, categories:{}, hint:true};
+const state = {levels:new Set(levels), query:'', tab:'table', objective:0, sort:'puntaje_general', ascending:false, page:0, selected:null, charts:{}, categories:{}, hint:true, disclosures:{keywords:false,reasons:false}};
 let project;
 let queries;
 function queryCard(code) {
@@ -116,7 +116,7 @@ function analysis(rows) {
   let content;
   if(state.objective>3) content=`<div class="empty"><h3>${objectives[state.objective][0]}</h3>Próximamente</div>`;
   else content=`<div class="objective-heading"><div class="eyebrow">OBJETIVO ${state.objective+1} · ${objectives[state.objective][0].toUpperCase()}</div><p>${objectives[state.objective][1]}</p></div>${state.objective===0&&state.hint?'<div class="hint">Se analizan los registros que superaron el filtro textual de termografía mamaria. Mencionar otra tecnología no excluye un artículo que también cumpla ese criterio.<button data-dismiss aria-label="Cerrar aviso">×</button></div>':''}${groups.map(g=>evidence(rows,g)).join('')}${state.objective===3?metricTable(rows):''}`;
-  return `<p class="caption">Menciones detectadas en título, resumen y palabras clave de ${rows.length} artículos seleccionados. Un artículo puede aparecer en varias categorías. Estos conteos no sustituyen la extracción manual del texto completo.</p><details class="panel" open><summary>Palabras clave más frecuentes</summary>${network(rows)}</details><details class="panel"><summary>Motivos de la recomendación general</summary><p class="caption">Selecciona un motivo para ver sus artículos y exportarlos en CSV.</p><div class="table-scroll"><table><thead><tr><th>Motivo</th><th>Artículos</th><th>% de seleccionados</th></tr></thead><tbody>${[...reasons].sort((a,b)=>b[1]-a[1]).map(([reason,n])=>`<tr><td><button class="article-title" data-reason="${escape(reason)}">${escape(reason)}</button></td><td>${n}</td><td>${percent(n,rows.length)}</td></tr>`).join('')}</tbody></table></div></details><nav class="objective-tabs" aria-label="Objetivos">${objectives.map((o,i)=>`<button data-objective="${i}" aria-pressed="${i===state.objective}">${i+1} · ${o[0]}</button>`).join('')}</nav><div id="objective-content">${content}</div>`;
+  return `<p class="caption">Menciones detectadas en título, resumen y palabras clave de ${rows.length} artículos seleccionados. Un artículo puede aparecer en varias categorías. Estos conteos no sustituyen la extracción manual del texto completo.</p><details class="panel" data-disclosure="keywords" ${state.disclosures.keywords?'open':''}><summary>Palabras clave más frecuentes</summary>${network(rows)}</details><details class="panel" data-disclosure="reasons" ${state.disclosures.reasons?'open':''}><summary>Motivos de la recomendación general</summary><p class="caption">Selecciona un motivo para ver sus artículos y exportarlos en CSV.</p><div class="table-scroll"><table><thead><tr><th>Motivo</th><th>Artículos</th><th>% de seleccionados</th></tr></thead><tbody>${[...reasons].sort((a,b)=>b[1]-a[1]).map(([reason,n])=>`<tr><td><button class="article-title" data-reason="${escape(reason)}">${escape(reason)}</button></td><td>${n}</td><td>${percent(n,rows.length)}</td></tr>`).join('')}</tbody></table></div></details><nav class="objective-tabs" aria-label="Objetivos">${objectives.map((o,i)=>`<button data-objective="${i}" aria-pressed="${i===state.objective}">${i+1} · ${o[0]}</button>`).join('')}</nav><div id="objective-content">${content}</div>`;
 }
 function metricTable(rows) { const names=project.categories.metrics; return `<section class="evidence"><h3>Métricas mencionadas por artículo</h3><p class="caption">✓ indica una mención en título, resumen o palabras clave. No confirma que el estudio haya utilizado la métrica.</p><div class="table-scroll metric-table"><table><thead><tr><th>Recurso</th><th>Título</th>${names.map(n=>`<th>${escape(n)}</th>`).join('')}</tr></thead><tbody>${rows.map(a=>`<tr><td>${resource(a)}</td><td><button class="article-title" data-article="${project.articles.indexOf(a)}">${escape(title(a))}</button></td>${names.map(n=>`<td class="metric" aria-label="${escape(n)}: ${a.mentions.metrics.includes(n)?'sí':'no'}">${a.mentions.metrics.includes(n)?'✓':'—'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`; }
 function results() {
@@ -151,6 +151,10 @@ document.addEventListener('click',event=>{
   if(button.hasAttribute('data-objective')){state.objective=Number(button.dataset.objective);results();}
   if(button.hasAttribute('data-dismiss')){state.hint=false;results();}
 });
+document.addEventListener('toggle',event=>{
+  const details=event.target;
+  if(details.isConnected && details.dataset.disclosure)state.disclosures[details.dataset.disclosure]=details.open;
+},true);
 document.addEventListener('change',event=>{
   const input=event.target;
   if(input.hasAttribute('data-level')){input.checked?state.levels.add(input.value):state.levels.delete(input.value);state.page=0;results();}
